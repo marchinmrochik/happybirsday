@@ -1,0 +1,26 @@
+{
+  "name": "interdimensional-30-birthday",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:lan": "next dev -H 0.0.0.0 -p 3000",
+    "typecheck": "tsc --noEmit",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "three": "0.182.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@types/three": "0.182.0",
+    "typescript": "6.0.3"
+  }
+}

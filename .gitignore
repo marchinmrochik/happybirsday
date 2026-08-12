@@ -1,0 +1,57 @@
+# Dependencies and package-manager caches
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+
+# Next.js and other generated build output
+.next/
+out/
+dist/
+.vercel/
+.turbo/
+
+# TypeScript generated state
+*.tsbuildinfo
+next-env.d.ts
+
+# Tests and temporary visual evidence
+coverage/
+playwright-report/
+test-results/
+artifacts/
+
+# Logs and process state
+*.log
+*.log.*
+*.pid
+*.pid.lock
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editor and IDE state
+.idea/
+.vs/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Generic temporary files
+*.tmp
+*.temp
+.cache/
