@@ -12,7 +12,7 @@ flowchart LR
   ready -->|Click portal| travel["travel"]
   travel -->|2.85 s| lab["lab"]
   lab -->|Use analysis station| analysis["analysis"]
-  analysis -->|18.8 s| finalDialog["final dialogue"]
+  analysis -->|Click result portal| finalDialog["final dialogue"]
   finalDialog -->|11.8 s| epilogue["final epilogue"]
 ```
 
@@ -42,7 +42,7 @@ flowchart LR
 - `phase`: current story scene.
 - `scannerReady`: scanner profile/CTA reveal status.
 - `portalCharging` and `portalReady`: gun-to-portal sequence.
-- `analysisComplete`: enables the final portal reaction inside the analysis phase.
+- `analysisComplete`: reveals and enables the manual portal action beside the analysis result frame.
 - `finalClosed`: switches from dialogue to the final birthday epilogue.
 - `openPhotoId`: selected memory modal.
 - `customizerOpen`: mirror editor modal.
@@ -53,6 +53,7 @@ Three.js callbacks return user actions to `BirthdayExperience`:
 - portal gun raycast -> `firePortalGun()`;
 - portal raycast -> `enterPortal()`;
 - garage analysis station -> `startAnalysis()`;
+- analysis result portal -> `continueFromAnalysis()`;
 - garage photo -> `openPhoto(photoId)`;
 - garage mirror -> `openCustomizer()`.
 
@@ -76,7 +77,7 @@ Gun and portal clicks are real Three.js raycasts against invisible 3D targets. T
 1. the room, imported garage, lights, photos, props, and interactions;
 2. the procedural player after `renderer.clearDepth()`.
 
-The second pass keeps the player readable above translucent garage/photo materials. Collision is independent of rendering and is calculated from `WALKABLE_FLOOR` minus `BLOCKED_FLOOR_AREAS`.
+The second pass keeps the player readable above garage/photo materials. Player collision is calculated from `WALKABLE_FLOOR` minus `BLOCKED_FLOOR_AREAS`. The chase camera separately raycasts from its look target toward its desired position and clamps itself in front of room or furniture geometry, preventing the view from crossing outside the garage shell.
 
 The imported garage FBX is the visual environment. The room shell provides dependable floor/wall coverage. The imported `Background` billboard is not the active environment.
 
@@ -96,7 +97,7 @@ All narrative timers are in `BirthdayExperience.tsx`:
 - portal charging: `1180 ms`;
 - travel: `2850 ms`;
 - analysis complete sound/state: `7600 ms`;
-- analysis to final: `18800 ms`;
+- analysis to final: manual click on the enabled result portal;
 - final dialogue to epilogue: `11800 ms`.
 
 When timing changes, verify that content remains readable and that cleanup clears every timer when the phase changes.

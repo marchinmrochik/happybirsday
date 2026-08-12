@@ -78,7 +78,7 @@ Technical documentation:
 3. The viewer clicks the portal and enters the garage after the travel transition.
 4. In the garage, the player moves with `WASD`/arrows, runs with `Shift`, jumps with `Space`, interacts with `E`/`Enter`, and kicks a nearby ball with `F`.
 5. Photos open a detail modal. The mirror opens a live character customizer. The chemistry station starts analysis.
-6. Analysis reveals the profile HUD and achievements, then automatically starts the final dialogue and epilogue.
+6. Analysis reveals the profile HUD and achievements, then waits for the viewer to click the large portal positioned just outside the lower-right edge of the result frame before starting the final dialogue and epilogue.
 
 ## Content Editing
 
@@ -117,4 +117,3 @@ Do not use Git commands until the user explicitly asks for Git work.
 ## Deployment Note
 
 Vercel is the intended hosting target. Before public deployment, verify licensing and public-use rights for all third-party models, textures, photos, character references, and music.
-

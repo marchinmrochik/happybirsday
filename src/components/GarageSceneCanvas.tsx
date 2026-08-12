@@ -143,6 +143,8 @@ const PLAYER_GRAVITY = 7.4;
 const PLAYER_CAMERA_DISTANCE = 2.18;
 const PLAYER_CAMERA_HEIGHT = 1.25;
 const PLAYER_LOOK_HEIGHT = 0.92;
+const CAMERA_COLLISION_CLEARANCE = 0.14;
+const CAMERA_MIN_DISTANCE = 0.72;
 const PHOTO_INTERACTION_RADIUS = 1.62;
 const PHOTO_SMILE_RADIUS = 2.5;
 const ANALYSIS_INTERACTION_RADIUS = 1.55;
@@ -332,6 +334,7 @@ export default function GarageSceneCanvas({
     const interactiveSportsObjects: THREE.Object3D[] = [];
     const interactiveMirrorObjects: THREE.Object3D[] = [];
     const raycaster = new THREE.Raycaster();
+    const cameraRaycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const clock = new THREE.Clock();
     const targetLook = { yaw: 0 };
@@ -341,6 +344,7 @@ export default function GarageSceneCanvas({
     const moveVector = new THREE.Vector3();
     const cameraForward = new THREE.Vector3();
     const cameraRight = new THREE.Vector3();
+    const cameraCollisionDirection = new THREE.Vector3();
     const desiredCamera = new THREE.Vector3();
     const desiredTarget = new THREE.Vector3();
     const photoWorldPosition = new THREE.Vector3();
@@ -451,6 +455,7 @@ export default function GarageSceneCanvas({
     const mirrorStation = createMirrorStation();
     collectMirrorTriggers(mirrorStation, interactiveMirrorObjects);
     mirrorGroup.add(mirrorStation);
+    const cameraColliders = [roomGroup, garageGroup, analysisGroup, mirrorGroup];
     loadMirrorAsset(loader, mirrorStation);
     sportsGroup.add(...sportsBalls.map((ball) => ball.root));
     interactiveSportsObjects.push(...sportsBalls.map((ball) => ball.root));
@@ -794,7 +799,17 @@ export default function GarageSceneCanvas({
         playerState.nearestMirror = isMirrorNear;
         playerState.faceMood = isMirrorNear ? "softSmile" : photoProximity.faceMood;
         setInteractionPrompt((current) => (current === nextInteractionPrompt ? current : nextInteractionPrompt));
-        updateChaseCamera(camera, playerState.position, currentLook.yaw, desiredCamera, desiredTarget, cameraForward);
+        updateChaseCamera(
+          camera,
+          playerState.position,
+          currentLook.yaw,
+          desiredCamera,
+          desiredTarget,
+          cameraForward,
+          cameraCollisionDirection,
+          cameraRaycaster,
+          cameraColliders
+        );
       } else {
         setInteractionPrompt((current) => (current === null ? current : null));
         camera.position.copy(CAMERA_HOME);
@@ -999,7 +1014,10 @@ function updateChaseCamera(
   cameraYaw: number,
   desiredCamera: THREE.Vector3,
   desiredTarget: THREE.Vector3,
-  cameraForward: THREE.Vector3
+  cameraForward: THREE.Vector3,
+  collisionDirection: THREE.Vector3,
+  collisionRaycaster: THREE.Raycaster,
+  colliders: THREE.Object3D[]
 ) {
   cameraForward.set(Math.sin(cameraYaw), 0, -Math.cos(cameraYaw));
   desiredCamera
@@ -1011,8 +1029,38 @@ function updateChaseCamera(
     .addScaledVector(cameraForward, 0.86)
     .add(new THREE.Vector3(0, PLAYER_LOOK_HEIGHT, 0));
 
-  camera.position.lerp(desiredCamera, 0.14);
+  const intendedDistance = desiredCamera.distanceTo(desiredTarget);
+  collisionDirection.subVectors(desiredCamera, desiredTarget).normalize();
+  collisionRaycaster.set(desiredTarget, collisionDirection);
+  collisionRaycaster.near = 0.08;
+  collisionRaycaster.far = intendedDistance;
+
+  const collision = collisionRaycaster.intersectObjects(colliders, true).find(({ object }) => isCameraBlockingMesh(object));
+
+  if (collision) {
+    const safeDistance = THREE.MathUtils.clamp(
+      collision.distance - CAMERA_COLLISION_CLEARANCE,
+      CAMERA_MIN_DISTANCE,
+      intendedDistance
+    );
+    desiredCamera.copy(desiredTarget).addScaledVector(collisionDirection, safeDistance);
+  }
+
+  if (collision) {
+    camera.position.copy(desiredCamera);
+  } else {
+    camera.position.lerp(desiredCamera, 0.14);
+  }
   camera.lookAt(desiredTarget);
+}
+
+function isCameraBlockingMesh(object: THREE.Object3D) {
+  if (!(object instanceof THREE.Mesh) || !object.visible) {
+    return false;
+  }
+
+  const materials = Array.isArray(object.material) ? object.material : [object.material];
+  return materials.some((material) => material.visible && material.opacity > 0.2);
 }
 
 function updatePhotoProximity(
@@ -1872,10 +1920,10 @@ function createInteriorRoom(textures: Record<GarageTextureKey, THREE.Texture>) {
   const room = new THREE.Group();
   const floorY = -0.08;
   const wallY = ROOM_HEIGHT / 2 + floorY;
-  const floorMaterial = createRoomMaterial(textures.floor, 4, 4, 0.74);
-  const wallMaterial = createRoomMaterial(textures.wall, 3, 2, 0.42);
-  const interiorMaterial = createRoomMaterial(textures.interior, 2, 2, 0.34);
-  const ceilingMaterial = createRoomMaterial(textures.ceiling, 3, 2, 0.38);
+  const floorMaterial = createRoomMaterial(textures.floor, 4, 4);
+  const wallMaterial = createRoomMaterial(textures.wall, 3, 2);
+  const interiorMaterial = createRoomMaterial(textures.interior, 2, 2);
+  const ceilingMaterial = createRoomMaterial(textures.ceiling, 3, 2);
 
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH), floorMaterial);
   floor.rotation.x = -Math.PI / 2;
@@ -1911,7 +1959,7 @@ function createInteriorRoom(textures: Record<GarageTextureKey, THREE.Texture>) {
   return room;
 }
 
-function createRoomMaterial(texture: THREE.Texture, repeatX: number, repeatY: number, opacity: number) {
+function createRoomMaterial(texture: THREE.Texture, repeatX: number, repeatY: number) {
   const roomTexture = texture.clone();
   roomTexture.colorSpace = THREE.SRGBColorSpace;
   roomTexture.wrapS = THREE.RepeatWrapping;
@@ -1921,10 +1969,9 @@ function createRoomMaterial(texture: THREE.Texture, repeatX: number, repeatY: nu
   return new THREE.MeshBasicMaterial({
     map: roomTexture,
     color: 0xffffff,
-    opacity,
-    transparent: true,
-    depthWrite: false,
-    side: THREE.DoubleSide
+    transparent: false,
+    depthWrite: true,
+    side: THREE.FrontSide
   });
 }
 
@@ -1966,21 +2013,21 @@ function createPhotoPanel(placement: PhotoPlacement, index: number, textureLoade
       color: new THREE.Color(PHOTO_HIGHLIGHT_COLOR),
       opacity: 0.12,
       transparent: true,
-      depthTest: false,
+      depthTest: true,
       depthWrite: false,
-      side: THREE.DoubleSide
+      side: THREE.FrontSide
     })
   );
   const card = new THREE.Mesh(
     new THREE.PlaneGeometry(placement.width, placement.height),
     placement.src
-      ? new THREE.MeshBasicMaterial({ color: 0xfff8d8, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
+      ? new THREE.MeshBasicMaterial({ color: 0xfff8d8, depthTest: true, depthWrite: true, side: THREE.FrontSide })
       : new THREE.MeshBasicMaterial({
           map: createPhotoTexture(placement.label, placement.accent, index === 0),
-          depthTest: false,
+          depthTest: true,
           depthWrite: false,
           transparent: true,
-          side: THREE.DoubleSide
+          side: THREE.FrontSide
         })
   );
   const tape = new THREE.Mesh(
@@ -1989,16 +2036,16 @@ function createPhotoPanel(placement: PhotoPlacement, index: number, textureLoade
       color: 0xeaff7a,
       opacity: 0.88,
       transparent: true,
-      depthTest: false,
+      depthTest: true,
       depthWrite: false,
-      side: THREE.DoubleSide
+      side: THREE.FrontSide
     })
   );
   const pinMaterial = new THREE.MeshBasicMaterial({
     color: new THREE.Color(PHOTO_HIGHLIGHT_COLOR),
-    depthTest: false,
+    depthTest: true,
     depthWrite: false,
-    side: THREE.DoubleSide
+    side: THREE.FrontSide
   });
 
   tape.position.set(0, placement.height * 0.45, 0.024);
@@ -2018,16 +2065,16 @@ function createPhotoPanel(placement: PhotoPlacement, index: number, textureLoade
     const photoTexture = createLoadedPhotoTexture(placement.src, renderer, textureLoader);
     const photo = new THREE.Mesh(
       new THREE.PlaneGeometry(placement.width * 0.84, placement.height * 0.72),
-      new THREE.MeshBasicMaterial({ map: photoTexture, depthTest: false, depthWrite: false, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ map: photoTexture, depthTest: true, depthWrite: false, side: THREE.FrontSide })
     );
     const label = new THREE.Mesh(
       new THREE.PlaneGeometry(placement.width * 0.72, placement.height * 0.12),
       new THREE.MeshBasicMaterial({
         map: createPhotoLabelTexture(placement.label, placement.accent),
         transparent: true,
-        depthTest: false,
+        depthTest: true,
         depthWrite: false,
-        side: THREE.DoubleSide
+        side: THREE.FrontSide
       })
     );
 
@@ -2059,9 +2106,7 @@ function keepPhotoPanelVisible(panel: THREE.Group) {
     const materials = Array.isArray(child.material) ? child.material : [child.material];
 
     materials.forEach((material) => {
-      material.depthTest = false;
-      material.depthWrite = false;
-      material.transparent = true;
+      material.depthTest = true;
       material.needsUpdate = true;
     });
   });
@@ -2767,9 +2812,9 @@ function prepareGarageModel(model: THREE.Object3D, textures: Record<GarageTextur
       }
 
       if (shellOpacity !== null) {
-        material.transparent = true;
-        material.opacity = shellOpacity;
-        material.depthWrite = false;
+        material.transparent = false;
+        material.opacity = 1;
+        material.depthWrite = true;
       }
 
       material.needsUpdate = true;

@@ -42,7 +42,7 @@ A full-screen comic sci-fi HUD reveals:
 - seven achievement cards;
 - a final system result banner.
 
-The reveal completes after `7.6 s`. The full screen remains available for reading before the story advances at `18.8 s`.
+The reveal completes after `7.6 s`. A large portal then appears just outside the lower-right edge of the result frame, vertically aligned with the completion banner. The HUD remains on screen until the viewer clicks that portal, so reading time is controlled by the viewer.
 
 ## Scene 6: Results Dialogue
 
@@ -60,4 +60,3 @@ The portal and side models close away. A final HUD panel shows:
 - the loaded-season status.
 
 A transparent final character appears over the existing background with the closing speech bubble.
-

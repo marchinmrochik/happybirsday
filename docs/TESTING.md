@@ -68,13 +68,15 @@ Use a desktop viewport close to `1280x720` unless the task specifies another tar
 5. Click the visible 3D portal gun, confirm the beam, wait for the portal and music, then click the portal.
 6. Confirm the travel transition reaches the garage.
 7. Move the player with `WASD`, rotate the view, and confirm furniture collision.
-8. Approach one photo, confirm single-object focus, open it with `E`, and close the modal.
-9. Approach the mirror, open the customizer, change an option, and confirm both the live preview and garage player update.
-10. Pick up/throw one ball with `E` and kick a floor ball with `F`.
-11. Approach the analysis station and start it with `E`.
-12. Confirm the analysis portrait, statistics, achievements, and completion banner are visible and readable.
-13. Confirm the final dialogue appears with the two side characters outside the modal.
-14. Confirm the epilogue hierarchy, exact greeting, final character, and speech bubble.
+8. Rotate the chase camera beside walls and large props; confirm the camera stays inside the room and hidden photo backs do not render through geometry.
+9. Approach one photo, confirm single-object focus, open it with `E`, and close the modal.
+10. Approach the mirror, open the customizer, change an option, and confirm both the live preview and garage player update.
+11. Pick up/throw one ball with `E` and kick a floor ball with `F`.
+12. Approach the analysis station and start it with `E`.
+13. Confirm the analysis portrait, statistics, achievements, and completion banner are visible and readable.
+14. Wait beyond the former automatic transition time and confirm the analysis HUD remains visible.
+15. Click the small lower-right result portal and confirm the final dialogue appears with the two side characters outside the modal.
+16. Confirm the epilogue hierarchy, exact greeting, final character, and speech bubble.
 
 ## Visual Assertions
 
@@ -117,4 +119,3 @@ A completion report must state:
 - the viewport used for visual verification;
 - where the screenshot was saved, when visual work was performed;
 - any check that was not run and why.
-

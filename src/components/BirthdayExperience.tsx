@@ -201,14 +201,9 @@ export default function BirthdayExperience() {
       setAnalysisComplete(true);
       portalSquelch(1.6);
     }, 7600);
-    const finalTimer = window.setTimeout(() => {
-      setPhase("final");
-    }, 18800);
-
     return () => {
       ctx.revert();
       window.clearTimeout(completeTimer);
-      window.clearTimeout(finalTimer);
     };
   }, [phase, portalSquelch]);
 
@@ -281,6 +276,14 @@ export default function BirthdayExperience() {
   const startAnalysis = () => {
     boardPop();
     setPhase("analysis");
+  };
+
+  const continueFromAnalysis = () => {
+    if (!analysisComplete) {
+      return;
+    }
+
+    setPhase("final");
   };
 
   const openPhoto = (photoId: string) => {
@@ -432,7 +435,8 @@ export default function BirthdayExperience() {
           </div>
 
           {phase === "analysis" && (
-            <article className="analysis-shell" aria-label="Результаты анализа">
+            <div className="analysis-stage">
+              <article className="analysis-shell" aria-label="Результаты анализа">
               <header className="analysis-profile-header">
                 <span className="analysis-scan-badge">
                   <i aria-hidden="true">⚛</i>
@@ -490,8 +494,21 @@ export default function BirthdayExperience() {
                 ))}
               </div>
 
-              <p className="analysis-complete">✔️ Система не нашла ни одного похожего экземпляра. Это хорошо... наверное.</p>
-            </article>
+                <footer className="analysis-footer">
+                  <p className="analysis-complete">✔️ Система не нашла ни одного похожего экземпляра. Это хорошо... наверное.</p>
+                </footer>
+              </article>
+
+              <button
+                className="analysis-next-portal"
+                type="button"
+                data-visible={analysisComplete}
+                disabled={!analysisComplete}
+                onClick={continueFromAnalysis}
+                aria-label="Продолжить через портал"
+                title="Продолжить"
+              />
+            </div>
           )}
         </section>
       )}

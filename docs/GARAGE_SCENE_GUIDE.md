@@ -35,13 +35,14 @@ This keeps the character visible above transparent photo panels and garage layer
 
 ## Player Movement
 
-The player state lives inside the main `useEffect` in `GarageSceneCanvas`. The scene is third-person: the camera follows the player and supports horizontal look, while vertical pitch remains fixed.
+The player state lives inside the main `useEffect` in `GarageSceneCanvas`. The scene is third-person: the camera follows the player and supports horizontal look, while vertical pitch remains fixed. `updateChaseCamera()` raycasts from the current look target to the desired chase position against the room, imported garage, analysis station, and mirror. On a hit, the camera snaps to a clearance point in front of the blocking surface so a frame cannot be rendered outside the room.
 
 Important constants:
 
 - `PLAYER_START`: initial world position.
 - `PLAYER_WALK_SPEED` and `PLAYER_RUN_SPEED`: movement speeds.
 - `PLAYER_COLLISION_RADIUS`: body padding used when checking furniture collisions.
+- `CAMERA_COLLISION_CLEARANCE` and `CAMERA_MIN_DISTANCE`: wall/prop clearance for the chase camera.
 - `WALKABLE_FLOOR`: outer allowed floor polygon.
 - `BLOCKED_FLOOR_AREAS`: rectangular furniture blockers.
 

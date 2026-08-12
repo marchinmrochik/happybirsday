@@ -470,3 +470,20 @@ C:\Users\roman\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin
 - Visually confirmed the restored normal `scanner` start, Russian scanner title, portal CTA, HTTP `200` response, and two nonzero WebGL canvas buffers.
 - Saved the final startup evidence to `docs/screenshots/scanner-normal-start.png`.
 - Recorded the existing `FBXLoader` negative-material-index warning as known supplied-asset debt; it did not prevent the verified scene from rendering.
+
+## Garage Camera Containment And Manual Analysis Exit
+
+- Added chase-camera collision raycasting against the room shell, imported garage, analysis station, and mirror so horizontal rotation cannot place the camera behind walls or large props.
+- Made the room shell and imported garage shell materials opaque with depth writing enabled, and restored normal front-face/depth behavior for memory photo panels so their backs do not appear through the scene.
+- Replaced the analysis-to-finale timeout with an explicit small portal action in the lower-right result footer; the portal becomes available only after the `7.6s` reveal completes.
+- Preserved the existing automatic timing after the portal click: the Rick/Morty results scene still advances to the epilogue after `11.8s`.
+- Verified on the existing local dev server at `1920x1080`: camera rotation stayed inside the garage, the analysis HUD remained in `phase-analysis` after an additional `12.5s`, and clicking the result portal entered `phase-final`.
+
+## Analysis Exit Portal Placement
+
+- Removed the arrow glyph from the result portal so the portal itself is the only visual action.
+- Doubled the desktop portal control from `54px` to `108px` and moved it outside the right edge of the analysis frame while keeping its center aligned with the completion banner.
+- Added a dedicated `analysis-stage` wrapper so the portal can sit outside the clipped HUD artwork without changing the modal contents.
+- Kept a contained fallback position at narrower breakpoints so the control cannot be clipped by the viewport.
+- Verified at `1920x1080`: the portal measured `108x108px`, had an empty text node, sat `16px` beyond the frame edge, remained enabled only after the reveal, and entered the final dialogue when clicked.
+- Updated `docs/screenshots/analysis-manual-portal.png` with the verified layout.

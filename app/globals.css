@@ -1737,12 +1737,18 @@ button {
   pointer-events: none;
 }
 
-.analysis-shell {
+.analysis-stage {
   position: relative;
   z-index: 8;
-  isolation: isolate;
   width: min(1440px, calc(100vw - 24px));
   margin: 12px auto 28px;
+}
+
+.analysis-shell {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  margin: 0;
   padding: 22px 28px 28px;
   overflow: hidden;
   border: 2px solid rgba(193, 255, 42, 0.82);
@@ -2146,9 +2152,13 @@ button {
   line-height: 1.22;
 }
 
+.analysis-footer {
+  margin-top: 11px;
+}
+
 .analysis-complete {
   min-height: 54px;
-  margin: 11px 0 0;
+  margin: 0;
   padding: 11px 64px;
   border: 2px solid rgba(193, 255, 42, 0.84);
   clip-path: polygon(2.5% 0, 97.5% 0, 100% 50%, 97.5% 100%, 2.5% 100%, 0 50%);
@@ -2165,6 +2175,74 @@ button {
   text-align: center;
   text-shadow: 0 0 10px rgba(157, 255, 34, 0.4);
   text-transform: uppercase;
+}
+
+.analysis-next-portal {
+  position: absolute;
+  z-index: 9;
+  right: 14px;
+  bottom: 1px;
+  width: 108px;
+  height: 108px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  opacity: 0;
+  background: transparent;
+  cursor: pointer;
+  filter: drop-shadow(0 0 11px rgba(157, 255, 34, 0.82));
+  pointer-events: none;
+  transform: scale(0.55) rotate(-8deg);
+  transition: opacity 260ms ease, transform 420ms cubic-bezier(0.2, 0.9, 0.22, 1.3), filter 180ms ease;
+}
+
+.analysis-next-portal::before {
+  position: absolute;
+  inset: -12px;
+  background: var(--portal-image) center / contain no-repeat;
+  content: "";
+  animation: analysisPortalSpin 7s linear infinite;
+}
+
+.analysis-next-portal[data-visible="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) rotate(0);
+  animation: analysisPortalReady 1.35s ease-in-out infinite;
+}
+
+.analysis-next-portal[data-visible="true"]:hover,
+.analysis-next-portal[data-visible="true"]:focus-visible {
+  filter: drop-shadow(0 0 17px rgba(193, 255, 42, 1));
+  transform: scale(1.08);
+}
+
+.analysis-next-portal:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+@media (min-width: 1700px) {
+  .analysis-next-portal {
+    right: -124px;
+  }
+}
+
+@keyframes analysisPortalSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes analysisPortalReady {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 9px rgba(157, 255, 34, 0.72));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 18px rgba(193, 255, 42, 1));
+  }
 }
 
 .final-scene {
@@ -3208,8 +3286,15 @@ button {
     max-width: none;
   }
 
-  .analysis-shell {
+  .analysis-stage {
     margin: 12px auto 24px;
+  }
+
+  .analysis-next-portal {
+    right: 8px;
+    bottom: 4px;
+    width: 96px;
+    height: 96px;
   }
 
   .analysis-stats,
