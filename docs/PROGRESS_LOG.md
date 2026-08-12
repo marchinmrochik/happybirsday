@@ -487,3 +487,22 @@ C:\Users\roman\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin
 - Kept a contained fallback position at narrower breakpoints so the control cannot be clipped by the viewport.
 - Verified at `1920x1080`: the portal measured `108x108px`, had an empty text node, sat `16px` beyond the frame edge, remained enabled only after the reveal, and entered the final dialogue when clicked.
 - Updated `docs/screenshots/analysis-manual-portal.png` with the verified layout.
+
+## Garage Label Occlusion And Carried-Ball Transform
+
+- Restored depth testing on the analysis station `START` label so the floor mirror and other closer garage geometry occlude it naturally.
+- Replaced the carried ball's independently calculated world-space offset with a temporary attachment to the rendered player root.
+- Reattach a thrown ball to the garage `sportsGroup` before applying velocity, preserving the visible release position and returning it to normal floor physics.
+- Updated throw and kick direction calculations to use the player's displayed rotation while a turn is still interpolating.
+- Confirmed `pnpm typecheck` passes.
+- Browser-tested pickup, character rotation while carrying, and throw on the existing local development server; the ball remained attached during the turn and detached back into the garage on release.
+- Saved the carried-ball turn and release evidence to `docs/screenshots/garage-carried-ball-turn.png` and `docs/screenshots/garage-ball-release.png`; the browser error log was empty during the verified path.
+
+## Mirror Material Pass
+
+- Copied the four supplied mirror textures into `public/assets/models/mirror-a/textures/` so the deployable project contains the complete source asset.
+- Added shared explicit materials for the loaded FBX and procedural fallback: dark cyan reflective glass, a dark wood frame, blue-black backing, and teal hardware.
+- Added a generated glass reflection texture with a cool gradient, edge shading, and diagonal highlights so the object reads as a mirror under the garage lighting without requiring real-time scene reflections.
+- Kept the mirror position, interaction trigger, and floor collision unchanged.
+- Confirmed `pnpm typecheck` passes and browser error logs remain empty on the garage path.
+- Saved the verified desktop scene to `docs/screenshots/garage-mirror-material.png`.

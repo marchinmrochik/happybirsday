@@ -12,7 +12,7 @@ All production dependencies and preserved source files live under `public/assets
 | Garage | `garage-fan-art/source/Rick and Morty Garage.fbx` | `FBXLoader` in `GarageSceneCanvas` | Active. |
 | Garage textures | `garage-fan-art/textures/*.png` | Explicit texture mapping in `GarageSceneCanvas` | Active. |
 | Player source | `models/cartoon-runner-v2.glb` | Loaded for source animations/model data | Active source; the reliable visible body is the procedural shell. |
-| Mirror | `models/mirror-a/source/mirrorA.fbx` | `FBXLoader` plus procedural fallback | Active when load succeeds. |
+| Mirror | `models/mirror-a/source/mirrorA.fbx` plus `models/mirror-a/textures/` | `FBXLoader` plus procedural fallback | Active when load succeeds; runtime materials distinguish glass, wood frame, backing, and hardware. |
 | Memory photos | `memories/memory-01.png` through `memory-08.png` | Three.js textures and React photo modal | Active. |
 | Analysis HUD | `analysis/analysis-hud-background.png` | CSS background skin | Active. |
 | Analysis sprites | `analysis/analysis-modal-reference.png` | CSS sprite source | Active reference-derived artwork. |
@@ -92,4 +92,3 @@ Before public deployment, confirm public web usage rights for:
 - reference-derived HUD and character artwork.
 
 Private local preview does not establish public distribution rights.
-

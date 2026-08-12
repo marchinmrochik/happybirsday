@@ -22,7 +22,7 @@ This document explains the current garage scene implementation and the required 
 `GarageSceneCanvas` creates two Three.js scenes:
 
 - `scene`: garage room, garage FBX model, memory photos, analysis station, lights, and atmosphere.
-- `playerScene`: visible playable character shell rendered after the main scene.
+- `playerScene`: visible playable character shell plus a currently carried sports ball, rendered after the main scene.
 
 The renderer manually draws in this order:
 
@@ -31,7 +31,7 @@ The renderer manually draws in this order:
 3. clear depth only;
 4. render the player scene.
 
-This keeps the character visible above transparent photo panels and garage layers.
+This keeps the character visible above transparent photo panels and garage layers. A carried ball joins this scene only while held, so its position follows the rendered player rotation instead of a separately updated world-space offset.
 
 ## Player Movement
 
@@ -107,6 +107,8 @@ Main constants:
 
 The mirror uses a procedural fallback immediately. The supplied FBX is loaded as a visual replacement when available. The loaded model is normalized by its bounding box so its bottom sits on the floor at the station origin. If the FBX fails or looks wrong, the fallback still keeps the interaction usable.
 
+`createMirrorMaterials()` owns the shared visual treatment for both paths. The glass uses a generated dark cyan reflection texture with diagonal highlights, the frame uses dark wood color, the backing is blue-black, and the arms/base/legs use teal hardware color. The supplied texture set is preserved under `public/assets/models/mirror-a/textures/`, but the explicit runtime part materials prevent the imported FBX from reverting to a flat gray surface when its single material assignment is invalid.
+
 Pressing `E` near the mirror calls `onCustomizerOpen`, which opens the React modal in `BirthdayExperience`.
 
 The modal edits `CharacterCustomization` state:
@@ -133,6 +135,8 @@ Sports balls are created in `createSportsBalls()`.
 - `F` kicks the focused floor ball forward.
 - Sports balls do not render proximity glow; the DOM prompt carries the interaction hint.
 - Ball motion is intentionally simple: fixed throw/kick speed, friction, gravity, and blocker checks against the same walkable floor logic used by the player.
+- Pickup reparents the selected ball from `sportsGroup` to the player root while preserving a stable local hand offset. Throw reparents it back to `sportsGroup` before applying velocity.
+- Throw and kick directions use the player's currently rendered rotation, not only the target yaw, so an action during a turn matches the visible facing direction.
 
 The prompt is intentionally short:
 
@@ -200,6 +204,8 @@ Current rope photo ids:
 - `hitboxSize`: invisible click/press target size.
 
 The station highlights when the player is within `ANALYSIS_INTERACTION_RADIUS`.
+
+The `START` plane uses normal depth testing. The station props and the floor mirror can therefore occlude the label when they are physically in front of it; do not disable `depthTest` to improve label readability.
 
 ## Player Hair
 
@@ -290,6 +296,7 @@ After garage code edits:
 2. run the affected interaction or movement path from the normal garage scene;
 3. verify collision access to the edited object and the neighboring objects;
 4. capture a desktop screenshot and inspect the Three.js canvas for nonblank output, clipping, transparency, and duplicate geometry;
-5. run `pnpm build` for release work or broad shared-runtime changes;
-6. restore the normal `scanner` start after any temporary phase isolation;
-7. record verified results in `docs/PROGRESS_LOG.md`.
+5. for carried-object changes, rotate the player while holding the object and verify it remains attached before and after the turn;
+6. run `pnpm build` for release work or broad shared-runtime changes;
+7. restore the normal `scanner` start after any temporary phase isolation;
+8. record verified results in `docs/PROGRESS_LOG.md`.

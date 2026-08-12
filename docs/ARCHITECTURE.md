@@ -75,9 +75,9 @@ Gun and portal clicks are real Three.js raycasts against invisible 3D targets. T
 `GarageSceneCanvas` renders two scenes with one camera:
 
 1. the room, imported garage, lights, photos, props, and interactions;
-2. the procedural player after `renderer.clearDepth()`.
+2. the procedural player and any currently carried sports ball after `renderer.clearDepth()`.
 
-The second pass keeps the player readable above garage/photo materials. Player collision is calculated from `WALKABLE_FLOOR` minus `BLOCKED_FLOOR_AREAS`. The chase camera separately raycasts from its look target toward its desired position and clamps itself in front of room or furniture geometry, preventing the view from crossing outside the garage shell.
+The second pass keeps the player readable above garage/photo materials. A carried ball is temporarily attached to the player root so it uses the same transform and render pass while the character turns. Player collision is calculated from `WALKABLE_FLOOR` minus `BLOCKED_FLOOR_AREAS`. The chase camera separately raycasts from its look target toward its desired position and clamps itself in front of room or furniture geometry, preventing the view from crossing outside the garage shell.
 
 The imported garage FBX is the visual environment. The room shell provides dependable floor/wall coverage. The imported `Background` billboard is not the active environment.
 

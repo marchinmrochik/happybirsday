@@ -639,7 +639,12 @@ export default function GarageSceneCanvas({
         }
 
         if (playerState.carriedBallId) {
-          throwCarriedSportsBall(sportsBalls, playerState, getPlayerActionForward(playerState.yaw, ballActionForward));
+          throwCarriedSportsBall(
+            sportsBalls,
+            sportsGroup,
+            playerState,
+            getPlayerActionForward(playerState.root?.rotation.y ?? playerState.yaw, ballActionForward)
+          );
           event.preventDefault();
           return;
         }
@@ -701,7 +706,12 @@ export default function GarageSceneCanvas({
         }
 
         if (playerState.carriedBallId) {
-          throwCarriedSportsBall(sportsBalls, playerState, getPlayerActionForward(playerState.yaw, ballActionForward));
+          throwCarriedSportsBall(
+            sportsBalls,
+            sportsGroup,
+            playerState,
+            getPlayerActionForward(playerState.root?.rotation.y ?? playerState.yaw, ballActionForward)
+          );
           event.preventDefault();
           return;
         }
@@ -726,7 +736,11 @@ export default function GarageSceneCanvas({
       }
 
       if (code === "KeyF" && !event.repeat && playerState.nearestBallId) {
-        kickSportsBall(sportsBalls, playerState.nearestBallId, getPlayerActionForward(playerState.yaw, ballActionForward));
+        kickSportsBall(
+          sportsBalls,
+          playerState.nearestBallId,
+          getPlayerActionForward(playerState.root?.rotation.y ?? playerState.yaw, ballActionForward)
+        );
         event.preventDefault();
       }
     };
@@ -1295,7 +1309,7 @@ function updateSportsBalls(
 
   balls.forEach((ball) => {
     if (ball.isCarried) {
-      positionCarriedSportsBall(ball, playerState, ballWorldPosition);
+      ball.velocity.set(0, 0, 0);
     } else {
       simulateFreeSportsBall(ball, delta);
     }
@@ -1316,24 +1330,13 @@ function updateSportsBalls(
     const targetScale = isActive ? 1.16 : 1;
 
     ball.currentScale += (targetScale - ball.currentScale) * 0.18;
-    ball.root.scale.setScalar(ball.currentScale);
+
+    if (!ball.isCarried) {
+      ball.root.scale.setScalar(ball.currentScale);
+    }
   });
 
   return { activeBallId } as const;
-}
-
-function positionCarriedSportsBall(
-  ball: SportsBallState,
-  playerState: {
-    position: THREE.Vector3;
-    yaw: number;
-  },
-  target: THREE.Vector3
-) {
-  getPlayerActionForward(playerState.yaw, target);
-  ball.root.position.copy(playerState.position).addScaledVector(target, 0.42);
-  ball.root.position.y = 0.96;
-  ball.velocity.set(0, 0, 0);
 }
 
 function simulateFreeSportsBall(ball: SportsBallState, delta: number) {
@@ -1389,23 +1392,34 @@ function simulateFreeSportsBall(ball: SportsBallState, delta: number) {
 function pickUpSportsBall(
   balls: SportsBallState[],
   playerState: {
+    root: THREE.Group | null;
     carriedBallId: string | null;
   },
   ballId: string
 ) {
   const ball = balls.find((entry) => entry.id === ballId);
+  const playerRoot = playerState.root;
 
-  if (!ball || playerState.carriedBallId) {
+  if (!ball || !playerRoot || playerState.carriedBallId) {
     return;
   }
 
+  playerRoot.updateWorldMatrix(true, false);
+  ball.root.updateWorldMatrix(true, false);
+  playerRoot.attach(ball.root);
+
+  const playerScale = playerRoot.getWorldScale(new THREE.Vector3());
+  ball.root.position.set(0.2 / playerScale.x, 0.94 / playerScale.y, 0.38 / playerScale.z);
+  ball.root.scale.set(1 / playerScale.x, 1 / playerScale.y, 1 / playerScale.z);
   ball.isCarried = true;
   ball.velocity.set(0, 0, 0);
+  ball.currentScale = 1;
   playerState.carriedBallId = ball.id;
 }
 
 function throwCarriedSportsBall(
   balls: SportsBallState[],
+  sportsGroup: THREE.Group,
   playerState: {
     carriedBallId: string | null;
   },
@@ -1418,6 +1432,10 @@ function throwCarriedSportsBall(
     return;
   }
 
+  sportsGroup.updateWorldMatrix(true, false);
+  ball.root.updateWorldMatrix(true, false);
+  sportsGroup.attach(ball.root);
+  ball.root.scale.setScalar(1);
   ball.isCarried = false;
   ball.velocity.copy(forward).multiplyScalar(BALL_THROW_SPEED);
   ball.velocity.y = 1.05;
@@ -2250,7 +2268,7 @@ function createAnalysisStation() {
       new THREE.MeshBasicMaterial({
         map: createAnalysisLabelTexture("START"),
         transparent: true,
-        depthTest: false,
+        depthTest: true,
         depthWrite: false,
         side: THREE.DoubleSide
       })
@@ -2467,29 +2485,14 @@ function findNearestProjectedAnalysisTrigger(
 
 function createMirrorStation() {
   const station = new THREE.Group();
-  const frameMaterial = new THREE.MeshStandardMaterial({
-    color: 0x22313a,
-    emissive: 0x082424,
-    emissiveIntensity: 0.26,
-    roughness: 0.46,
-    metalness: 0.18
-  });
-  const mirrorMaterial = new THREE.MeshStandardMaterial({
-    color: 0x9bdfff,
-    emissive: 0x28f0d2,
-    emissiveIntensity: 0.18,
-    roughness: 0.18,
-    metalness: 0.72,
-    transparent: true,
-    opacity: 0.78
-  });
+  const materials = createMirrorMaterials();
   const placeholder = new THREE.Group();
-  const mirror = markMirrorTrigger(new THREE.Mesh(new THREE.PlaneGeometry(0.58, 1.26), mirrorMaterial));
-  const topFrame = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.06, 0.07), frameMaterial);
+  const mirror = markMirrorTrigger(new THREE.Mesh(new THREE.PlaneGeometry(0.58, 1.26), materials.glass));
+  const topFrame = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.06, 0.07), materials.frame);
   const bottomFrame = topFrame.clone();
-  const leftFrame = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.36, 0.07), frameMaterial);
+  const leftFrame = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.36, 0.07), materials.frame);
   const rightFrame = leftFrame.clone();
-  const foot = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.06, 0.42), frameMaterial);
+  const foot = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.06, 0.42), materials.hardware);
   const hitbox = markMirrorTrigger(
     new THREE.Mesh(
       new THREE.BoxGeometry(...MIRROR_STATION_TUNING.hitboxSize),
@@ -2545,6 +2548,7 @@ function loadMirrorAsset(loader: FBXLoader, station: THREE.Group) {
 function prepareMirrorModel(model: THREE.Object3D) {
   model.name = "loaded-customizer-mirror";
   model.updateMatrixWorld(true);
+  const materials = createMirrorMaterials();
 
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
@@ -2572,15 +2576,86 @@ function prepareMirrorModel(model: THREE.Object3D) {
     child.renderOrder = MIRROR_RENDER_ORDER;
     child.frustumCulled = false;
 
-    const materials = Array.isArray(child.material) ? child.material : [child.material];
-    materials.forEach((material) => {
-      material.side = THREE.DoubleSide;
-      material.transparent = false;
-      material.depthWrite = true;
-      material.depthTest = true;
-      material.needsUpdate = true;
-    });
+    const partName = child.name.toLowerCase();
+
+    if (partName.includes("mirrorback")) {
+      child.material = materials.backing;
+    } else if (partName.endsWith("mirror") || partName.includes("mirrormirror")) {
+      child.material = materials.glass;
+    } else if (partName.includes("frame")) {
+      child.material = materials.frame;
+    } else {
+      child.material = materials.hardware;
+    }
   });
+}
+
+function createMirrorMaterials() {
+  const shared = {
+    side: THREE.DoubleSide,
+    depthWrite: true,
+    depthTest: true
+  } as const;
+
+  return {
+    glass: new THREE.MeshBasicMaterial({
+      ...shared,
+      map: createMirrorGlassTexture(),
+      color: 0xffffff,
+      toneMapped: false
+    }),
+    backing: new THREE.MeshBasicMaterial({
+      ...shared,
+      color: 0x10282f
+    }),
+    frame: new THREE.MeshBasicMaterial({
+      ...shared,
+      color: 0x4b261b
+    }),
+    hardware: new THREE.MeshBasicMaterial({
+      ...shared,
+      color: 0x164b50
+    })
+  } as const;
+}
+
+function createMirrorGlassTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 1024;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return null;
+  }
+
+  const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "#091d2b");
+  gradient.addColorStop(0.38, "#174d60");
+  gradient.addColorStop(0.68, "#2b8192");
+  gradient.addColorStop(1, "#0a2634");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.save();
+  context.rotate(-0.28);
+  context.fillStyle = "rgba(190, 255, 255, 0.24)";
+  context.fillRect(-110, 170, 90, 1250);
+  context.fillStyle = "rgba(255, 255, 255, 0.1)";
+  context.fillRect(25, 170, 24, 1250);
+  context.restore();
+
+  const edgeGlow = context.createRadialGradient(256, 470, 70, 256, 470, 520);
+  edgeGlow.addColorStop(0, "rgba(62, 238, 221, 0.2)");
+  edgeGlow.addColorStop(0.72, "rgba(27, 105, 130, 0.08)");
+  edgeGlow.addColorStop(1, "rgba(0, 0, 0, 0.34)");
+  context.fillStyle = edgeGlow;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 function markMirrorTrigger<T extends THREE.Object3D>(object: T) {
