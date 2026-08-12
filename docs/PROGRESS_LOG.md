@@ -506,3 +506,11 @@ C:\Users\roman\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin
 - Kept the mirror position, interaction trigger, and floor collision unchanged.
 - Confirmed `pnpm typecheck` passes and browser error logs remain empty on the garage path.
 - Saved the verified desktop scene to `docs/screenshots/garage-mirror-material.png`.
+
+## Sports Ball Material Readability
+
+- Added neutral lighting to the separate player render scene so standard-material sports balls retain their colors after pickup.
+- Rebuilt the procedural football pattern with 12 evenly distributed pentagon patches, removing the plain white back hemisphere.
+- Confirmed `pnpm typecheck` passes through the bundled Node runtime.
+- Browser-tested both carried variants: the football remained white with black patches while turning, and the basketball remained orange with black seams.
+- Saved the verified states to `docs/screenshots/garage-held-football-lit.png` and `docs/screenshots/garage-held-basketball-lit.png`; the browser error log was empty.

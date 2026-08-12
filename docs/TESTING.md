@@ -71,14 +71,15 @@ Use a desktop viewport close to `1280x720` unless the task specifies another tar
 8. Rotate the chase camera beside walls and large props; confirm the camera stays inside the room and hidden photo backs do not render through geometry.
 9. Approach one photo, confirm single-object focus, open it with `E`, and close the modal.
 10. Approach the mirror, open the customizer, change an option, and confirm both the live preview and garage player update.
-11. Pick up a ball with `E`, turn the character in both directions, and confirm the ball stays at the same hand/body offset instead of moving behind the player.
-12. Throw the carried ball with `E`, confirm it detaches cleanly into the room, then kick a floor ball with `F`.
-13. Put the floor mirror between the camera and the analysis station and confirm the `START` label does not render through the mirror.
-14. Approach the analysis station and start it with `E`.
-15. Confirm the analysis portrait, statistics, achievements, and completion banner are visible and readable.
-16. Wait beyond the former automatic transition time and confirm the analysis HUD remains visible.
-17. Click the small lower-right result portal and confirm the final dialogue appears with the two side characters outside the modal.
-18. Confirm the epilogue hierarchy, exact greeting, final character, and speech bubble.
+11. Inspect the football from several directions and confirm black pentagons remain visible rather than leaving a plain white hemisphere.
+12. Pick up each ball with `E`, turn the character in both directions, and confirm it keeps its white/black or orange color and stays at the same hand/body offset instead of moving behind the player.
+13. Throw the carried ball with `E`, confirm it detaches cleanly into the room, then kick a floor ball with `F`.
+14. Put the floor mirror between the camera and the analysis station and confirm the `START` label does not render through the mirror.
+15. Approach the analysis station and start it with `E`.
+16. Confirm the analysis portrait, statistics, achievements, and completion banner are visible and readable.
+17. Wait beyond the former automatic transition time and confirm the analysis HUD remains visible.
+18. Click the small lower-right result portal and confirm the final dialogue appears with the two side characters outside the modal.
+19. Confirm the epilogue hierarchy, exact greeting, final character, and speech bubble.
 
 ## Visual Assertions
 

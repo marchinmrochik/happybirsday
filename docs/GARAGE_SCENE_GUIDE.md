@@ -31,7 +31,7 @@ The renderer manually draws in this order:
 3. clear depth only;
 4. render the player scene.
 
-This keeps the character visible above transparent photo panels and garage layers. A carried ball joins this scene only while held, so its position follows the rendered player rotation instead of a separately updated world-space offset.
+This keeps the character visible above transparent photo panels and garage layers. A carried ball joins this scene only while held, so its position follows the rendered player rotation instead of a separately updated world-space offset. Neutral lights belong to `playerScene` as well as the garage scene; without them, the standard materials of carried props render black in the second pass.
 
 ## Player Movement
 
@@ -128,7 +128,7 @@ The modal edits `CharacterCustomization` state:
 
 Sports balls are created in `createSportsBalls()`.
 
-- Football is procedural: a white ball with black pentagon patches. This replaced the supplied texture because the imported texture made the ball look partly black and unclear in the garage lighting.
+- Football is procedural: a white ball with 12 black pentagon patches distributed over icosahedral directions, keeping the pattern recognizable from every camera angle. This replaced the supplied texture because the imported texture made the ball look partly black and unclear in the garage lighting.
 - Basketball is procedural because the supplied `.blend` file is not browser-loadable.
 - `E` picks up the focused ball.
 - `E` throws the carried ball forward.

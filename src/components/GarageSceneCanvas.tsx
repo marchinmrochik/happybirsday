@@ -403,6 +403,14 @@ export default function GarageSceneCanvas({
     playableCharacter.renderOrder = PLAYER_RENDER_ORDER;
     playerState.root = playableCharacter;
     playerScene.add(playableCharacter);
+    // Lit props move into the player pass while carried; this pass needs its own lights.
+    const playerFillLight = new THREE.HemisphereLight(0xf4fff8, 0x24323d, 2.4);
+    playerFillLight.position.set(0, 4, 0);
+    playerScene.add(playerFillLight);
+
+    const playerKeyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    playerKeyLight.position.set(-2.5, 4.2, 4.5);
+    playerScene.add(playerKeyLight);
     installGarageDebugControls(playableCharacter);
     mount.dataset.player = "shell";
 
@@ -1235,18 +1243,24 @@ function createFootballMesh() {
     side: THREE.DoubleSide
   });
   const ball = new THREE.Mesh(new THREE.SphereGeometry(0.17, 42, 24), ballMaterial);
+  const phi = (1 + Math.sqrt(5)) / 2;
   const patchNormals = [
-    new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(0.62, 0.42, 0.66),
-    new THREE.Vector3(-0.66, 0.32, 0.68),
-    new THREE.Vector3(0.58, -0.44, 0.62),
-    new THREE.Vector3(-0.52, -0.52, 0.64),
-    new THREE.Vector3(0, 0.82, 0.58),
-    new THREE.Vector3(0, -0.86, 0.5)
-  ];
+    [0, 1, phi],
+    [0, -1, phi],
+    [0, 1, -phi],
+    [0, -1, -phi],
+    [1, phi, 0],
+    [-1, phi, 0],
+    [1, -phi, 0],
+    [-1, -phi, 0],
+    [phi, 0, 1],
+    [phi, 0, -1],
+    [-phi, 0, 1],
+    [-phi, 0, -1]
+  ].map(([x, y, z]) => new THREE.Vector3(x, y, z).normalize());
 
-  patchNormals.forEach((normal, index) => {
-    const patch = createFootballPatch(normal.normalize(), index === 0 ? 0.052 : 0.042, seamMaterial);
+  patchNormals.forEach((normal) => {
+    const patch = createFootballPatch(normal, 0.044, seamMaterial);
     group.add(patch);
   });
 
